@@ -1,1 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SITA AI Project Ideas - Flappy Bird Style</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background-color: #333;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            max-width: 800px;
+            max-height: 600px;
+            margin: 0 auto;
+            overflow: hidden;
+            background-color: #87CEEB;
+        }
+        
+        #bird {
+            position: absolute;
+            width: 40px;
+            height: 30px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30"><ellipse cx="20" cy="15" rx="18" ry="14" fill="%23F9D342"/><circle cx="30" cy="10" r="3" fill="black"/><path d="M35,15 Q40,20 35,25" fill="none" stroke="%23F9D342" stroke-width="4"/><path d="M10,15 L5,10 M10,15 L5,20" stroke="black" stroke-width="2"/></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 100;
+        }
+        
+        .pipe {
+            position: absolute;
+            width: 60px;
+            background-color: #4CAF50;
+            border: 4px solid #388E3C;
+            box-sizing: border-box;
+        }
+        
+        .pipe-top {
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+        }
+        
+        .pipe-bottom {
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        
+        .pipe-cap-top {
+            position: absolute;
+            bottom: 0;
+            width: 70px;
+            height: 20px;
+            background-color: #388E3C;
+            left: -5px;
+            border-radius: 5px 5px 0 0;
+        }
+        
+        .pipe-cap-bottom {
+            position: absolute;
+            top: 0;
+            width: 70px;
+            height: 20px;
+            background-color: #388E3C;
+            left: -5px;
+            border-radius: 0 0 5px 5px;
+        }
+        
+        .ai-item {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 50;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+            animation: pulse 1.5s infinite alternate;
+        }
+        
+        .ai-item.item1 { 
+            background-color: #FF5722; 
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M16,13C15.71,13 15.38,13 15.03,13.05C16.19,13.89 17,15 17,16.5V19H23V16.5C23,14.17 18.33,13 16,13M8,13C5.67,13 1,14.17 1,16.5V19H15V16.5C15,14.17 10.33,13 8,13M8,11A3,3 0 0,0 11,8A3,3 0 0,0 8,5A3,3 0 0,0 5,8A3,3 0 0,0 8,11M16,11A3,3 0 0,0 19,8A3,3 0 0,0 16,5A3,3 0 0,0 13,8A3,3 0 0,0 16,11Z"/></svg>');
+        }
+        .ai-item.item2 { 
+            background-color: #2196F3; 
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,5A3,3 0 0,1 15,8A3,3 0 0,1 12,11A3,3 0 0,1 9,8A3,3 0 0,1 12,5Z"/></svg>');
+        }
+        .ai-item.item3 { 
+            background-color: #4CAF50; 
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M17.12,10.35L12.05,5.28L10.64,6.69L11.91,8H4A2,2 0 0,0 2,10V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V10A2,2 0 0,0 20,8H15.54L17.12,9.59L15.71,11M11,15.5H9V19.5H11V15.5M13.5,15.5H15.5V19.5H13.5V15.5Z"/></svg>');
+        }
+        .ai-item.item4 { 
+            background-color: #9C27B0; 
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/></svg>');
+        }
+        .ai-item.item5 { 
+            background-color: #FF9800; 
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12,3L1,9L12,15L21,10.09V17H23V9M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18Z"/></svg>');
+        }
+        .ai-item.item6 { 
+            background-color: #03A9F4; 
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M8,7.71V11.05L15.14,12L8,12.95V16.29L18,12L8,7.71Z"/></svg>');
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.9; box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); }
+            100% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 20px rgba(255, 255, 255, 1); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.9; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+        
+        #clouds {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 80px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100"><path d="M0,70 Q150,40 300,70 T600,70 T900,70 T1200,70 V100 H0 Z" fill="white" opacity="0.7"/></svg>');
+            background-size: 1000px 100px;
+            background-repeat: repeat-x;
+            animation: cloudMove 20s linear infinite;
+        }
+        
+        @keyframes cloudMove {
+            from { background-position-x: 0; }
+            to { background-position-x: -1000px; }
+        }
+        
+        #city {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 120px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 120"><rect x="10" y="50" width="30" height="70" fill="%23607D8B"/><rect x="15" y="40" width="20" height="10" fill="%23607D8B"/><rect x="20" y="30" width="10" height="10" fill="%23607D8B"/><rect x="50" y="40" width="40" height="80" fill="%23455A64"/><rect x="100" y="60" width="25" height="60" fill="%23607D8B"/><rect x="135" y="30" width="35" height="90" fill="%23455A64"/><rect x="180" y="70" width="30" height="50" fill="%23607D8B"/><rect x="220" y="50" width="40" height="70" fill="%23607D8B"/><rect x="270" y="40" width="50" height="80" fill="%23455A64"/><rect x="330" y="60" width="35" height="60" fill="%23607D8B"/><rect x="375" y="20" width="30" height="100" fill="%23455A64"/><rect x="415" y="50" width="40" height="70" fill="%23607D8B"/><rect x="465" y="70" width="25" height="50" fill="%23607D8B"/><rect x="500" y="40" width="45" height="80" fill="%23455A64"/><rect x="555" y="30" width="30" height="90" fill="%23607D8B"/><rect x="595" y="55" width="35" height="65" fill="%23455A64"/><rect x="640" y="70" width="30" height="50" fill="%23607D8B"/><rect x="680" y="30" width="40" height="90" fill="%23455A64"/><rect x="730" y="50" width="25" height="70" fill="%23607D8B"/><rect x="765" y="40" width="35" height="80" fill="%23455A64"/><rect x="810" y="60" width="40" height="60" fill="%23607D8B"/><rect x="860" y="45" width="30" height="75" fill="%23607D8B"/><rect x="900" y="30" width="45" height="90" fill="%23455A64"/><rect x="955" y="55" width="30" height="65" fill="%23607D8B"/></svg>');
+            background-size: 1000px 120px;
+            background-repeat: repeat-x;
+            animation: cityMove 30s linear infinite;
+        }
+        
+        @keyframes cityMove {
+            from { background-position-x: 0; }
+            to { background-position-x: -1000px; }
+        }
+        
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 200;
+        }
+        
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            z-index: 300;
+            max-width: 80%;
+        }
+        
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        #info-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 80%;
+            max-height: 80%;
+            font-size: 14px;
+            display: none;
+            z-index: 250;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            color: white;
+            overflow-y: auto;
+        }
+        
+        #info-panel h3 {
+            margin-top: 0;
+            color: white;
+            font-size: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        #info-panel h4 {
+            margin: 15px 0 5px 0;
+            color: #CCC;
+            font-size: 16px;
+        }
+        
+        #info-panel p {
+            margin-bottom: 10px;
+            color: white;
+            line-height: 1.5;
+        }
+        
+        #info-panel-resume {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+        
+        #pause-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: none;
+            z-index: 200;
+        }
+        
+        .collected-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 5px;
+            vertical-align: middle;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        
+        #collected-items {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 5px;
+            z-index: 200;
+        }
+        
+        #restart-in-game {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(220, 53, 69, 0.8);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 200;
+            transition: background-color 0.3s;
+        }
+        
+        #restart-in-game:hover {
+            background-color: rgba(220, 53, 69, 1);
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="city"></div>
+        <div id="clouds"></div>
+        <div id="bird"></div>
+        <div id="score">Score: 0</div>
+        <div id="collected-items"></div>
+        <button id="restart-in-game">Restart</button>
+        <div id="pause-overlay"></div>
+        <div id="info-panel">
+            <h3>Project Title</h3>
+            <h4>What:</h4>
+            <p id="project-what">Project details will appear here.</p>
+            <h4>Why:</h4>
+            <p id="project-why">Project details will appear here.</p>
+            <h4>How:</h4>
+            <p id="project-how">Project details will appear here.</p>
+            <div id="info-panel-resume">
+                Press <strong>E</strong> to resume game
+            </div>
+        </div>
+        
+        <div id="start-screen">
+            <h1>SITA AI Project Ideas</h1>
+            <p>Collect the 6 AI project ideas while avoiding obstacles!</p>
+            <p>Press SPACE or tap the screen to flap your wings.</p>
+            <p>When you collect a project, the game will pause. Press E to resume.</p>
+            <button id="start-button">Start Game</button>
+        </div>
+        
+        <div id="game-over">
+            <h2>Game Over!</h2>
+            <p>Your score: <span id="final-score">0</span></p>
+            <div id="collected-summary"></div>
+            <button id="restart-button">Play Again</button>
+        </div>
+    </div>
 
+    <script>
+        // Game variables
+        let isGameStarted = false;
+        let isGamePaused = false;
+        let gameSpeed = 2;
+        let gravity = 0.2;
+        let birdX = 50;
+        let birdY = 150;
+        let birdVelocity = 0;
+        let birdWidth = 40;
+        let birdHeight = 30;
+        let score = 0;
+        let pipes = [];
+        let aiItems = [];
+        let collectedItems = [];
+        let gameLoopId;
+        let lastPipeTime = 0;
+        let lastItemTime = 0;
+        let gracePeriod = true; // Add grace period after starting
+        
+        // Game elements
+        const gameContainer = document.getElementById('game-container');
+        const bird = document.getElementById('bird');
+        const scoreElement = document.getElementById('score');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalScoreElement = document.getElementById('final-score');
+        const startButton = document.getElementById('start-button');
+        const restartButton = document.getElementById('restart-button');
+        const infoPanel = document.getElementById('info-panel');
+        const collectedItemsElement = document.getElementById('collected-items');
+        const collectedSummary = document.getElementById('collected-summary');
+        
+        // Game container dimensions - with fallbacks for safer rendering
+        const containerWidth = gameContainer.clientWidth || 800;
+        const containerHeight = gameContainer.clientHeight || 600;
+        
+        // Ensure minimum dimensions
+        if (containerWidth < 300 || containerHeight < 300) {
+            gameContainer.style.width = '800px';
+            gameContainer.style.height = '600px';
+        }
+        
+        // AI Project data with detailed information
+        const aiProjects = [
+            {
+                title: "AI-Powered Passenger Flow Prediction Tool",
+                what: "A Streamlit application that uses historical passenger data to predict bottlenecks at different airport touchpoints.",
+                why: "Addressing SITA's focus on passenger processing efficiency to reduce congestion and improve the overall traveler experience.",
+                how: "Machine learning models analyze historical passenger throughput data to predict peak times and potential congestion areas. Interactive visualizations show predicted wait times at check-in, security, and boarding gates. A 'what-if' scenario simulator allows testing how adding or removing staff and self-service kiosks would impact passenger flows.",
+                color: "#FF5722"
+            },
+            {
+                title: "Digital Travel Credential Simulator",
+                what: "A simulation system demonstrating how biometric identity verification works in the airport environment.",
+                why: "Supporting SITA's pioneering work with Digital Travel Credentials (DTC) in Aruba to streamline passenger processing and enhance security.",
+                how: "The simulator creates a visual user journey comparing traditional document verification with digital credential processing. It implements facial recognition algorithms to match passenger faces to their digital identity. Real-time metrics show processing time improvements, security enhancement statistics, and passenger throughput increases.",
+                color: "#2196F3"
+            },
+            {
+                title: "Flight Sustainability Optimization Dashboard",
+                what: "A dashboard that visualizes flight paths and identifies fuel-saving opportunities using machine learning.",
+                why: "Aligning with SITA OptiFlight's mission to use ML for determining fuel-saving scenarios and reducing aviation's environmental impact.",
+                how: "ML models process real-time flight data to predict optimal climb and descent profiles. The system visualizes current vs. optimized flight paths with interactive 3D mapping. Real-time CO2 savings calculations are displayed based on route adjustments, with cumulative environmental impact metrics for airline operators.",
+                color: "#4CAF50"
+            },
+            {
+                title: "Baggage Journey Anomaly Detection",
+                what: "An AI system that detects potential baggage handling issues before they occur.",
+                why: "Extending SITA's WorldTracer Auto Reflight capabilities by proactively identifying problems rather than reactively solving them.",
+                how: "Anomaly detection algorithms analyze baggage tracking data points to identify unusual patterns. Computer vision monitors baggage handling processes through existing camera infrastructure. The system visualizes baggage flow through airports and provides predictive alerts for operational staff when potential issues are detected.",
+                color: "#9C27B0"
+            },
+            {
+                title: "AI-Powered Airport Resource Optimization",
+                what: "A resource allocation optimizer that uses AI to efficiently distribute airport staff and equipment.",
+                why: "Supporting SITA's development of Total Airport Management by integrating AI into day-to-day operations planning.",
+                how: "Machine learning algorithms predict resource needs based on flight schedules, historical data, and real-time inputs. The system allocates staff, gates, and ground handling equipment optimally to minimize costs and maximize efficiency. Interactive visualizations demonstrate how AI-driven decisions improve operational metrics compared to manual planning.",
+                color: "#FF9800"
+            },
+            {
+                title: "Generative AI Assistant for Travel Disruptions",
+                what: "A conversational AI interface for handling passenger queries during flight disruptions.",
+                why: "Building on SITA's Digital Passenger Assistant demo to provide personalized support during the most stressful travel situations.",
+                how: "Large language models are fine-tuned on aviation-specific knowledge and disruption scenarios. The assistant provides personalized alternative travel options based on passenger profile and preferences. The system includes multilingual support (aligning with SITA's support for 60+ languages) and integrates with airline booking systems to implement rebooking suggestions.",
+                color: "#03A9F4"
+            }
+        ];
+        
+        // Initialize game
+        function init() {
+            resetGame();
+            
+            // Event listeners
+            startButton.addEventListener('click', startGame);
+            restartButton.addEventListener('click', resetGame);
+            document.getElementById('restart-in-game').addEventListener('click', resetGame);
+            document.addEventListener('keydown', handleKeyDown);
+            gameContainer.addEventListener('click', handleTap);
+            
+            // Position bird initially
+            updateBirdPosition();
+            
+            // Hide restart button initially
+            document.getElementById('restart-in-game').style.display = 'none';
+        }
+        
+        // Start game
+        function startGame() {
+            if (!isGameStarted) {
+                isGameStarted = true;
+                startScreen.style.display = 'none';
+                
+                // Show restart button
+                document.getElementById('restart-in-game').style.display = 'block';
+                
+                // Set initial position safely
+                birdY = containerHeight / 2; // Start exactly in the middle for easy collection
+                birdVelocity = 0;
+                updateBirdPosition();
+                
+                // Add grace period
+                gracePeriod = true;
+                setTimeout(() => {
+                    gracePeriod = false;
+                }, 1500);
+                
+                // Create initial AI item immediately (in a preset order)
+                createAiItem();
+                
+                gameLoop();
+            }
+        }
+        
+        // Reset game
+        function resetGame() {
+            // Reset variables
+            isGameStarted = false;
+            isGamePaused = false;
+            birdY = 150;
+            birdVelocity = 0;
+            score = 0;
+            pipes = [];
+            aiItems = [];
+            collectedItems = [];
+            
+            // Clear elements
+            clearGameElements();
+            scoreElement.textContent = `Score: ${score}`;
+            collectedItemsElement.innerHTML = '';
+            collectedSummary.innerHTML = '';
+            
+            // Show start screen, hide game over and info panel
+            startScreen.style.display = 'flex';
+            gameOverScreen.style.display = 'none';
+            infoPanel.style.display = 'none';
+            document.getElementById('pause-overlay').style.display = 'none';
+            document.getElementById('restart-in-game').style.display = 'none';
+            
+            // Position bird initially
+            updateBirdPosition();
+            
+            // Cancel previous game loop if exists
+            if (gameLoopId) {
+                cancelAnimationFrame(gameLoopId);
+            }
+        }
+        
+        // Game loop
+        function gameLoop() {
+            try {
+                // Skip game logic if paused
+                if (isGamePaused) {
+                    if (isGameStarted) {
+                        gameLoopId = requestAnimationFrame(gameLoop);
+                    }
+                    return;
+                }
+                
+                // Apply gravity (reduced during grace period)
+                if (!gracePeriod) {
+                    birdVelocity += gravity;
+                } else {
+                    birdVelocity += gravity * 0.3;
+                }
+                birdY += birdVelocity;
+                
+                // Update bird position
+                updateBirdPosition();
+                
+                // Always generate AI items, but only generate pipes after grace period
+                if (collectedItems.length < aiProjects.length) {
+                    // If we have no AI items on screen, force creation of one
+                    if (aiItems.length === 0) {
+                        createAiItem();
+                    } else {
+                        generateObstacles();
+                    }
+                } else if (!gracePeriod) {
+                    generateObstacles();
+                }
+                
+                // Move elements
+                moveElements();
+                
+                // Only check collisions after grace period
+                if (!gracePeriod) {
+                    checkCollisions();
+                }
+                
+                // Update score
+                scoreElement.textContent = `Score: ${score}`;
+                
+                // Continue loop if game is running
+                if (isGameStarted) {
+                    gameLoopId = requestAnimationFrame(gameLoop);
+                }
+            } catch (e) {
+                console.error("Game loop error:", e);
+                // Prevent game from crashing completely
+                if (isGameStarted) {
+                    gameLoopId = requestAnimationFrame(gameLoop);
+                }
+            }
+        }
+        
+        // Update bird position
+        function updateBirdPosition() {
+            bird.style.top = `${birdY}px`;
+            bird.style.left = `${birdX}px`;
+            
+            // Rotate bird based on velocity
+            const angle = Math.min(Math.max(birdVelocity * 2, -30), 30);
+            bird.style.transform = `rotate(${angle}deg)`;
+        }
+        
+        // Generate pipes and AI items
+        function generateObstacles() {
+            const currentTime = Date.now();
+            
+            // Generate pipes every 3 seconds (less frequent for easier gameplay)
+            if (currentTime - lastPipeTime > 3000) {
+                createPipe();
+                lastPipeTime = currentTime;
+            }
+            
+            // Generate AI items every 4 seconds, one at a time
+            if (currentTime - lastItemTime > 4000 && collectedItems.length < aiProjects.length) {
+                // Only create a new item if there are none on screen
+                if (aiItems.length === 0) {
+                    createAiItem();
+                    lastItemTime = currentTime;
+                }
+            }
+        }
+        
+        // Create pipe
+        function createPipe() {
+            // Only create pipes in top and bottom areas, leaving middle clear for coins
+            const gapHeight = 250; // Very large gap for easy navigation
+            const gapPosition = Math.random() * (containerHeight - gapHeight - 200) + 100;
+            
+            // Top pipe
+            const topPipe = document.createElement('div');
+            topPipe.className = 'pipe pipe-top';
+            topPipe.style.height = `${gapPosition}px`;
+            topPipe.style.left = `${containerWidth}px`;
+            
+            const topPipeCap = document.createElement('div');
+            topPipeCap.className = 'pipe-cap-top';
+            topPipe.appendChild(topPipeCap);
+            
+            // Bottom pipe
+            const bottomPipe = document.createElement('div');
+            bottomPipe.className = 'pipe pipe-bottom';
+            bottomPipe.style.height = `${containerHeight - gapPosition - gapHeight}px`;
+            bottomPipe.style.top = `${gapPosition + gapHeight}px`;
+            bottomPipe.style.left = `${containerWidth}px`;
+            
+            const bottomPipeCap = document.createElement('div');
+            bottomPipeCap.className = 'pipe-cap-bottom';
+            bottomPipe.appendChild(bottomPipeCap);
+            
+            // Add to game and pipes array
+            gameContainer.appendChild(topPipe);
+            gameContainer.appendChild(bottomPipe);
+            
+            pipes.push({
+                top: topPipe,
+                bottom: bottomPipe,
+                passed: false
+            });
+        }
+        
+        // Create AI item
+        function createAiItem() {
+            // Determine which item to create (ones not collected yet)
+            const uncollectedIndices = [];
+            for (let i = 0; i < aiProjects.length; i++) {
+                if (!collectedItems.includes(i)) {
+                    uncollectedIndices.push(i);
+                }
+            }
+            
+            if (uncollectedIndices.length === 0) return;
+            
+            // For demonstration purposes, follow a specific order to show all projects
+            let nextIndex = 0;
+            if (uncollectedIndices.length === 6) nextIndex = 0; // AI-Powered Passenger Flow Prediction Tool
+            else if (uncollectedIndices.length === 5) nextIndex = 1; // Digital Travel Credential Simulator
+            else if (uncollectedIndices.length === 4) nextIndex = 2; // Flight Sustainability Optimization Dashboard
+            else if (uncollectedIndices.length === 3) nextIndex = 3; // Baggage Journey Anomaly Detection
+            else if (uncollectedIndices.length === 2) nextIndex = 4; // AI-Powered Airport Resource Optimization
+            else if (uncollectedIndices.length === 1) nextIndex = 5; // Generative AI Assistant for Travel Disruptions
+            
+            // Ensure the index is in the uncollected indices
+            if (!uncollectedIndices.includes(nextIndex)) {
+                nextIndex = uncollectedIndices[0];
+            }
+            
+            // Place item in the middle safe zone of the screen
+            let itemX = containerWidth;
+            
+            // Always place in the middle area of screen - this is a safe zone with no pipes
+            let itemY = containerHeight / 2;
+            
+            // Create item
+            const aiItem = document.createElement('div');
+            aiItem.className = `ai-item item${nextIndex + 1}`;
+            aiItem.style.left = `${itemX}px`;
+            aiItem.style.top = `${itemY}px`;
+            aiItem.dataset.index = nextIndex;
+            
+            // Add to game and items array
+            gameContainer.appendChild(aiItem);
+            aiItems.push(aiItem);
+        }
+        
+        // Move pipes and AI items
+        function moveElements() {
+            // Move pipes
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                const pipe = pipes[i];
+                const pipeLeft = parseFloat(pipe.top.style.left);
+                
+                // Move pipe
+                pipe.top.style.left = `${pipeLeft - gameSpeed}px`;
+                pipe.bottom.style.left = `${pipeLeft - gameSpeed}px`;
+                
+                // Check if pipe passed the bird
+                if (!pipe.passed && pipeLeft < birdX) {
+                    pipe.passed = true;
+                    score += 10;
+                }
+                
+                // Remove pipe if off screen
+                if (pipeLeft < -60) {
+                    gameContainer.removeChild(pipe.top);
+                    gameContainer.removeChild(pipe.bottom);
+                    pipes.splice(i, 1);
+                }
+            }
+            
+            // Move AI items
+            for (let i = aiItems.length - 1; i >= 0; i--) {
+                const item = aiItems[i];
+                const itemLeft = parseFloat(item.style.left);
+                
+                // Move item
+                item.style.left = `${itemLeft - gameSpeed}px`;
+                
+                // Remove item if off screen
+                if (itemLeft < -40) {
+                    gameContainer.removeChild(item);
+                    aiItems.splice(i, 1);
+                }
+            }
+        }
+        
+        // Check collisions
+        function checkCollisions() {
+            // Safety check - don't detect collisions during grace period
+            if (gracePeriod) return;
+            
+            // Define hitbox (smaller than visual bird for easier play)
+            const hitboxX = birdX + 8;
+            const hitboxY = birdY + 8;
+            const hitboxWidth = birdWidth - 16;
+            const hitboxHeight = birdHeight - 16;
+            
+            // Check if bird hits the ground or ceiling
+            if (birdY < 0 || birdY > containerHeight - birdHeight) {
+                gameOver();
+                return;
+            }
+            
+            // Check pipe collisions with smaller hitbox
+            for (const pipe of pipes) {
+                try {
+                    const pipeLeft = parseFloat(pipe.top.style.left);
+                    const topPipeHeight = parseFloat(pipe.top.style.height);
+                    const bottomPipeTop = parseFloat(pipe.bottom.style.top);
+                    
+                    // Skip if values are NaN
+                    if (isNaN(pipeLeft) || isNaN(topPipeHeight) || isNaN(bottomPipeTop)) {
+                        continue;
+                    }
+                    
+                    // Check if bird is in the same x-range as pipe
+                    if (
+                        hitboxX + hitboxWidth > pipeLeft && 
+                        hitboxX < pipeLeft + 60
+                    ) {
+                        // Check if bird hits top or bottom pipe
+                        if (
+                            hitboxY < topPipeHeight || 
+                            hitboxY + hitboxHeight > bottomPipeTop
+                        ) {
+                            gameOver();
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Collision detection error:", e);
+                    continue;
+                }
+            }
+            
+        // Check for AI item collisions with more forgiving collision detection
+            for (let i = aiItems.length - 1; i >= 0; i--) {
+                const item = aiItems[i];
+                const itemLeft = parseFloat(item.style.left);
+                const itemTop = parseFloat(item.style.top);
+                
+                // More generous collision detection for items
+                const collectionDistance = 60; // Even larger distance for easier collection
+                
+                // Check if bird is near the item (more forgiving distance)
+                const birdCenterX = birdX + birdWidth/2;
+                const birdCenterY = birdY + birdHeight/2;
+                const itemCenterX = itemLeft + 20;
+                const itemCenterY = itemTop + 20;
+                
+                const distance = Math.sqrt(
+                    Math.pow(birdCenterX - itemCenterX, 2) + 
+                    Math.pow(birdCenterY - itemCenterY, 2)
+                );
+                
+                if (distance < collectionDistance) {
+                    // Collect item
+                    const itemIndex = parseInt(item.dataset.index);
+                    collectItem(itemIndex);
+                    
+                    // Remove item
+                    gameContainer.removeChild(item);
+                    aiItems.splice(i, 1);
+                    
+                    // Add to score
+                    score += 50;
+                }
+            }
+        }
+        
+        // Collect item
+        function collectItem(index) {
+            // Add to collected items if not already collected
+            if (!collectedItems.includes(index)) {
+                collectedItems.push(index);
+                
+                // Show item in collected items area
+                const itemElement = document.createElement('div');
+                itemElement.className = `collected-icon`;
+                itemElement.style.backgroundColor = aiProjects[index].color;
+                itemElement.style.backgroundImage = document.querySelector(`.item${index + 1}`).style.backgroundImage;
+                collectedItemsElement.appendChild(itemElement);
+                
+                // Pause game and show info panel
+                pauseGame();
+                showItemInfo(index);
+            }
+        }
+        
+        // Pause the game
+        function pauseGame() {
+            isGamePaused = true;
+            document.getElementById('pause-overlay').style.display = 'block';
+        }
+        
+        // Resume the game
+        function resumeGame() {
+            isGamePaused = false;
+            document.getElementById('pause-overlay').style.display = 'none';
+            infoPanel.style.display = 'none';
+        }
+        
+        // Show item info
+        function showItemInfo(index) {
+            const project = aiProjects[index];
+            
+            // Update info panel with detailed information
+            infoPanel.querySelector('h3').textContent = project.title;
+            document.getElementById('project-what').textContent = project.what;
+            document.getElementById('project-why').textContent = project.why;
+            document.getElementById('project-how').textContent = project.how;
+            
+            // Set panel border color to match project
+            infoPanel.style.borderLeft = `5px solid ${project.color}`;
+            
+            // Show panel
+            infoPanel.style.display = 'block';
+        }
+        
+        // Game over
+        function gameOver() {
+            isGameStarted = false;
+            isGamePaused = false;
+            finalScoreElement.textContent = score;
+            
+            // Create collected items summary with detailed information
+            collectedSummary.innerHTML = '<h3>Collected AI Projects:</h3>';
+            
+            if (collectedItems.length === 0) {
+                collectedSummary.innerHTML += '<p>No projects collected!</p>';
+            } else {
+                for (const index of collectedItems) {
+                    const project = aiProjects[index];
+                    const projectDiv = document.createElement('div');
+                    projectDiv.style.marginBottom = '15px';
+                    projectDiv.style.borderLeft = `4px solid ${project.color}`;
+                    projectDiv.style.paddingLeft = '10px';
+                    
+                    projectDiv.innerHTML = `
+                        <h4 style="margin: 0 0 5px 0; color: white;">${project.title}</h4>
+                        <p style="margin: 0 0 5px 0;"><strong>What:</strong> ${project.what}</p>
+                        <p style="margin: 0 0 5px 0;"><strong>Why:</strong> ${project.why}</p>
+                    `;
+                    
+                    collectedSummary.appendChild(projectDiv);
+                }
+            }
+            
+            // Show game over screen
+            gameOverScreen.style.display = 'block';
+            
+            // Hide info panel and pause overlay
+            infoPanel.style.display = 'none';
+            document.getElementById('pause-overlay').style.display = 'none';
+        }
+        
+        // Handle key press
+        function handleKeyDown(e) {
+            // Space or up arrow to flap
+            if ((e.code === 'Space' || e.code === 'ArrowUp') && isGameStarted && !isGamePaused) {
+                flap();
+            } else if ((e.code === 'Space' || e.code === 'ArrowUp') && !isGameStarted && startScreen.style.display !== 'none') {
+                startGame();
+            }
+            
+            // E key to resume game
+            if (e.code === 'KeyE' && isGamePaused) {
+                resumeGame();
+            }
+        }
+        
+        // Handle tap/click
+        function handleTap(e) {
+            // Ignore clicks on the restart button
+            if (e.target.id === 'restart-in-game') {
+                return;
+            }
+            
+            if (isGameStarted && !isGamePaused) {
+                flap();
+            } else if (!isGameStarted && startScreen.style.display !== 'none') {
+                startGame();
+            }
+        }
+        
+        // Bird flap
+        function flap() {
+            birdVelocity = -4.5; // Slightly gentler flap
+            
+            // Prevent bird from going above the screen
+            if (birdY < 0) {
+                birdY = 0;
+            }
+        }
+        
+        // Clear game elements
+        function clearGameElements() {
+            const elements = document.querySelectorAll('.pipe, .ai-item');
+            elements.forEach(element => {
+                gameContainer.removeChild(element);
+            });
+        }
+        
+        // Initialize the game after a short delay to ensure DOM is ready
+        setTimeout(init, 100);
+    </script>
+</body>
+</html>
